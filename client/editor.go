@@ -36,12 +36,6 @@ func (e *Editor) GetValue() string {
 // StartSendingChanges starts to send changes to the channel
 func (e *Editor) StartSendingChanges() {
 	e.ace.Call("on", "input", func() {
-		go func() {
-			currentValue := e.GetValue()
-			if e.preValue != currentValue {
-				e.preValue = currentValue
-				e.changeCh <- currentValue
-			}
-		}()
+		e.changeCh <- e.GetValue()
 	})
 }
