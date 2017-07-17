@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	nodejs.Require("events").Get("EventEmitter").Set("defaultMaxListeners", 0)
 	app := electron.GetApp()
 	app.On(electron.EvtAppReady, func(args ...*js.Object) {
 		opt := electron.NewBrowserWindowOption()

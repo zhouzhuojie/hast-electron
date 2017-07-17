@@ -5,24 +5,20 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.css">
-    <link rel="stylesheet" href="./client/static/vuetify.min.css">
+    <link rel="stylesheet" href="./client/static/bulma.css">
     <link rel="stylesheet" href="./client/styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.8/ace.js"></script>
   </head>
   <body>
     <div id="app">
-      <v-layout row wrap>
-        <v-flex xs2>
-        </v-flex>
-        <v-flex xs5>
-          <div id="h-editor-wrapper">
-          </div>
-        </v-flex>
-        <v-flex xs5>
-          <div id="h-slides-wrapper">
-          </div>
-        </v-flex>
-      </v-layout>
+      <div class="columns is-gapless">
+        <div class="column">
+          <div id="h-editor-wrapper"></div>
+        </div>
+        <div class="column">
+          <div id="h-slides-wrapper"></div>
+        </div>
+      </div>
     </div>
 
     <script src="./client/index.js"></script>

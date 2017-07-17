@@ -2,6 +2,10 @@ package main
 
 import "github.com/gopherjs/gopherjs/js"
 
+const (
+	containerID = "h-slides-wrapper"
+)
+
 // Slide is the slide object
 type Slide struct {
 	mdContent string
@@ -11,7 +15,7 @@ type Slide struct {
 // NewSlide creates a new Slide
 func NewSlide() *Slide {
 	s := &Slide{
-		container: Document.Call("getElementById", "h-slides-wrapper"),
+		container: Document.Call("getElementById", containerID),
 	}
 	s.Render()
 	return s
@@ -22,8 +26,18 @@ func (s *Slide) SetContent(c string) {
 	s.mdContent = c
 }
 
+func (s *Slide) refreshContainer() {
+	parent := s.container.Get("parentNode")
+	s.container.Call("remove")
+	c := Document.Call("createElement", "div")
+	c.Set("id", containerID)
+	parent.Call("appendChild", c)
+	s.container = c
+}
+
 // Render renders Slide
 func (s *Slide) Render() {
+	s.refreshContainer()
 	s.renderMarkdown()
 }
 

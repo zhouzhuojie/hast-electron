@@ -4,8 +4,10 @@ import "github.com/gopherjs/gopherjs/js"
 
 // Editor is an Editor
 type Editor struct {
-	aceSession *js.Object
-	changeCh   chan string
+	ace      *js.Object
+	changeCh chan string
+
+	preValue string
 }
 
 // NewEditor creates a new Editor
@@ -14,8 +16,8 @@ func NewEditor() *Editor {
 	session := ace.Call("getSession")
 	session.Call("setMode", "ace/mode/markdown")
 	e := &Editor{
-		aceSession: session,
-		changeCh:   make(chan string, 1),
+		ace:      ace,
+		changeCh: make(chan string, 1),
 	}
 	e.StartSendingChanges()
 	return e
@@ -28,14 +30,18 @@ func (e *Editor) GetChangeCh() chan string {
 
 // GetValue gets the current editor value
 func (e *Editor) GetValue() string {
-	return e.aceSession.Call("getValue").String()
+	return e.ace.Call("getValue").String()
 }
 
 // StartSendingChanges starts to send changes to the channel
 func (e *Editor) StartSendingChanges() {
-	e.aceSession.Call("on", "change", func() {
+	e.ace.Call("on", "input", func() {
 		go func() {
-			e.changeCh <- e.GetValue()
+			currentValue := e.GetValue()
+			if e.preValue != currentValue {
+				e.preValue = currentValue
+				e.changeCh <- currentValue
+			}
 		}()
 	})
 }
