@@ -42,11 +42,10 @@ func (a *App) Bootstrap() {
 }
 
 func (a *App) syncEditorToSlides() {
-	changeCh := a.E.GetChangeCh()
+	changeCh := a.E.GetContentCh()
 	go func() {
 		for {
-			value := <-changeCh
-			a.S.SetContent(value)
+			a.S.SetContent(<-changeCh)
 			a.S.Render()
 		}
 	}()
