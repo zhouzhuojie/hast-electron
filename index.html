@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hast</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="./client/static/katex.min.css">
+    <link rel="stylesheet" href="./client/static/vuetify.min.css">
+    <link rel="stylesheet" href="./client/styles.css">
+  </head>
+  <body>
+    <div id="app">
+      <v-layout row wrap>
+        <v-flex xs2>
+        </v-flex>
+        <v-flex xs5>
+          <textarea id="source">
+    class: center, middle, inverse
+
+    # $KaTeX{}$ in remark
+
+    ---
+
+    # Display and Inline
+
+    1. This is an inline integral: $\int_a^bf(x)dx$
+    2. More $x={a \over b}$ formulae.
+
+    Display formula:
+
+    $$e^{i\pi} + 1 = 0$$
+
+    ---
+
+    ```ruby
+    def add(a,b)
+    *  a + b
+    end
+
+    Notice how there is no return statement.
+    ```
+          </textarea>
+        </v-flex>
+        <v-flex xs5>
+          <div id="h-slides-wrapper">
+          </div>
+        </v-flex>
+      </v-layout>
+    </div>
+    <script src="./client/index.js"></script>
+  </body>
+</html>

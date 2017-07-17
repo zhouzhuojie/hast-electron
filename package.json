@@ -1,0 +1,13 @@
+{
+  "name":"hast-electron",
+  "main":"main.js",
+  "scripts": {
+    "start": "electron .",
+    "debug": "electron --inspect=5858 .",
+    "compile": "gopherjs build main.go -o main.js && gopherjs build client/index.go -o client/index.js && lessc client/styles.less client/styles.css"
+  },
+  "devDependencies": {
+    "electron": "~1.6.2",
+    "less": "~2.7.2"
+  }
+}
