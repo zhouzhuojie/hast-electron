@@ -3,22 +3,54 @@
   <head>
     <title>Hast</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons' rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.7.1/katex.min.css">
-    <link rel="stylesheet" href="./client/static/bulma.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photon/0.1.2-alpha/css/photon.min.css">
     <link rel="stylesheet" href="./client/styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.8/ace.js"></script>
   </head>
   <body>
-    <div id="app">
-      <div class="columns is-gapless">
-        <div class="column">
-          <div id="h-editor-wrapper"></div>
-        </div>
-        <div class="column">
-          <div id="h-slides-wrapper"></div>
+    <div id="app" class="window">
+      <header class="toolbar toolbar-header">
+        <h1 class="title">Header</h1>
+      </header>
+      <div class="window-content">
+        <div class="pane-group">
+          <div class="pane-sm sidebar">
+            <ul class="list-group">
+              <li class="list-group-header">
+                <input class="form-control" type="text" placeholder="Search for someone">
+              </li>
+              <li class="list-group-item">
+                <img class="img-circle media-object pull-left" src="/assets/img/avatar.jpg" width="32" height="32">
+                <div class="media-body">
+                  <strong>List item title</strong>
+                  <p>Lorem ipsum dolor sit amet.</p>
+                </div>
+              </li>
+              <li class="list-group-item">
+                <img class="img-circle media-object pull-left" src="/assets/img/avatar2.png" width="32" height="32">
+                <div class="media-body">
+                  <strong>List item title</strong>
+                  <p>Lorem ipsum dolor sit amet.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div class="pane">
+            <div id="h-editor-wrapper"></div>
+          </div>
+          <div class="pane" v-bind:class="{'full-screen-mode': fullScreenMode}">
+            <div id="h-slides-wrapper"></div>
+          </div>
+          <div id="full-screen-btn-wrapper" @click="ToggleFullScreenMode">
+            <span class="icon icon-resize-full" v-if="!fullScreenMode"></span>
+            <span class="icon icon-resize-small" v-if="fullScreenMode"></span>
+          </div>
         </div>
       </div>
+      <footer class="toolbar toolbar-footer">
+        <h1 class="title">Footer</h1>
+      </footer>
     </div>
 
     <script src="./client/index.js"></script>

@@ -1,34 +1,34 @@
-@font_family_1: 'Droid Serif';
-@font_family_2: 'Yanone Kaffeesatz';
-@font_family_3: 'Ubuntu Mono';
-
-body {
-    font-family: @font_family_1;
-}
-h1 {
-    font-family: @font_family_2;
-    font-weight: normal;
-}
-h2 {
-    font-family: @font_family_2;
-    font-weight: normal;
-}
-h3 {
-    font-family: @font_family_2;
-    font-weight: normal;
-}
-.remark-code {
-    font-family: @font_family_3;
-}
-.remark-inline-code {
-    font-family: @font_family_3;
-}
-
 #h-slides-wrapper {
-    height: 300px;
-    width: 300px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
+.pane.full-screen-mode {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 98;
 }
 
 #h-editor-wrapper {
-    height: 300px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
+#full-screen-btn-wrapper {
+  position: absolute;
+  bottom: 2em;
+  right: 2em;
+  z-index: 99;
+  .icon {
+    font-size: 2em;
+  }
 }

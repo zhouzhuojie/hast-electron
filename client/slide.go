@@ -10,6 +10,7 @@ const (
 type Slide struct {
 	mdContent string
 	container *js.Object
+	slideshow *js.Object
 }
 
 // NewSlide creates a new Slide
@@ -41,6 +42,11 @@ func (s *Slide) Render() {
 	s.renderMarkdown()
 }
 
+// GotoPage sets the slide to the specific page number
+func (s *Slide) GotoPage(pageNum int) {
+	s.slideshow.Call("gotoSlide", pageNum)
+}
+
 func (s *Slide) renderMath() {
 	js.Global.Call("renderMathInElement", s.container, js.M{
 		"delimiters": js.S{
@@ -57,5 +63,6 @@ func (s *Slide) renderMarkdown() {
 		"container": s.container,
 		"source":    s.mdContent,
 	}
-	Remark.Call("create", option, s.renderMath)
+	s.slideshow = Remark.Call("create", option, s.renderMath)
+	js.Global.Set("s", s.slideshow)
 }
