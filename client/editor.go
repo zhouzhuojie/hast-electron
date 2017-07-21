@@ -50,6 +50,11 @@ func (e *Editor) GetValue() string {
 	return e.ace.Call("getValue").String()
 }
 
+// SetValue sets the current editor value
+func (e *Editor) SetValue(val string) {
+	e.ace.Call("setValue", val, -1)
+}
+
 func (e *Editor) getCursorPageNum() int {
 	cursorRowNum := e.ace.Call("getCursorPosition").Get("row").Int()
 	lines := strings.Split(e.GetValue(), "\n")

@@ -7,6 +7,9 @@
     "clean": "rm -rf ./main.js* && rm -rf ./client/index.js* && rm -rf $GOPATH/pkg/*_js*",
     "compile": "gopherjs build main.go -o main.js && gopherjs install ./client && gopherjs build ./client/*.go -o client/index.js && lessc client/styles.less client/styles.css"
   },
+  "dependencies": {
+    "nedb": "1.8.0"
+  },
   "devDependencies": {
     "electron": "~1.6.2",
     "less": "~2.7.2"

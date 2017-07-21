@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/gopherjs/gopherjs/js"
@@ -39,121 +38,143 @@ var (
 
 	// HomePath is the path to the home is the os
 	HomePath = js.Global.Call("require", "electron").Get("remote").Call("require", "os").Call("homedir").String()
+
+	// NeDB is a db for doc storage
+	NeDB = js.Global.Call("require", "electron").Get("remote").Call("require", "nedb")
 )
+
+// NewObject creates a new js.Object
+func NewObject() *js.Object {
+	return js.Global.Get("Object").New()
+}
 
 // Doc is the data storage for a single doc
 type Doc struct {
-	UUID      string
-	Title     string
-	Content   string
-	UpdatedAt time.Time
+	*js.Object
+	ID        int64  `js:"_id"`
+	Title     string `js:"title"`
+	Content   string `js:"content"`
+	UpdatedAt int64  `js:"updated_at"`
 }
 
 // Corpus is the data storage for docs
 type Corpus struct {
-	Docs     map[string]*Doc
-	Filename string
+	DB         *js.Object
+	CurrentDoc *Doc
+}
+
+// NewCorpus creates a new Corpus
+func NewCorpus(filename string) *Corpus {
+	c := &Corpus{
+		DB: NeDB.New(js.M{
+			"filename": filename,
+			"autoload": true,
+		}),
+	}
+	ch := make(chan []*Doc)
+	c.GetAll(ch)
+	allDocs := <-ch
+	if len(allDocs) == 0 {
+		c.CurrentDoc = &Doc{Object: NewObject()}
+	} else {
+		c.CurrentDoc = allDocs[0]
+	}
+	return c
 }
 
 // UpsertDoc upserts a doc to the corpus
 func (c *Corpus) UpsertDoc(
-	uuid string,
+	id int64,
 	title string,
 	content string,
 ) {
-	d := &Doc{}
-	d.UUID = uuid
+	d := &Doc{Object: NewObject()}
+	if id == 0 {
+		d.ID = time.Now().UnixNano()
+	} else {
+		d.ID = id
+	}
 	d.Title = title
 	d.Content = content
-	d.UpdatedAt = time.Now()
+	d.UpdatedAt = time.Now().UnixNano()
+	c.CurrentDoc = d
 
-	c.Docs[d.UUID] = d
+	c.DB.Call("update", js.M{"_id": id}, d, js.M{"upsert": true})
 }
 
-// Save saves the whole corpus
-func (c *Corpus) Save() {
-	b, _ := json.Marshal(c)
-	FS.Call("writeFileSync", c.Filename, string(b))
-	Console.Call("log", "saved to "+c.Filename)
+// GetAll gets all the docs
+func (c *Corpus) GetAll(ch chan []*Doc) {
+	exec := c.DB.Call("find", js.M{}).Call("sort", js.M{"updated_at": -1})
+	exec.Call("exec", func(err *js.Object, data *js.Object) {
+		n := data.Length()
+		docs := make([]*Doc, 0)
+		for i := 0; i < n; i++ {
+			d := data.Index(i)
+			doc := &Doc{Object: d}
+			docs = append(docs, doc)
+		}
+		ch <- docs
+	})
 }
 
-// Load loads the whole corpus
-func (c *Corpus) Load() {
-	tmpC := &Corpus{}
-	s := FS.Call("readFileSync", c.Filename).String()
-	json.Unmarshal([]byte(s), tmpC)
-	if tmpC.Docs == nil {
-		tmpC.Docs = make(map[string]*Doc)
-	}
-	c.Docs = tmpC.Docs
-}
-
-// VueModel is a vue model
-type VueModel struct {
+// App is the app struct
+type App struct {
 	*js.Object
+
+	S *Slide
+	E *Editor
+	C *Corpus
+
 	FullScreenMode bool `js:"fullScreenMode"`
 }
 
 // ToggleFullScreenMode toggles the full screen mode
-func (vm *VueModel) ToggleFullScreenMode() {
-	vm.FullScreenMode = !vm.FullScreenMode
-	if vm.FullScreenMode {
+func (a *App) ToggleFullScreenMode() {
+	a.FullScreenMode = !a.FullScreenMode
+	if a.FullScreenMode {
 		IpcRenderer.Call("send", "ipc_full_screen")
 	} else {
 		IpcRenderer.Call("send", "ipc_un_full_screen")
 	}
 }
 
-// App is the app struct
-type App struct {
-	S  *Slide
-	E  *Editor
-	VM *VueModel
-	C  *Corpus
-}
-
 // Bootstrap starts the app
 func (a *App) Bootstrap() {
-	a.VM = &VueModel{Object: js.Global.Get("Object").New()}
-	a.VM.FullScreenMode = false
-	vue.New("#app", a.VM)
+	a.Object = NewObject()
+	a.FullScreenMode = false
+	vue.New("#app", a)
 
-	a.C = &Corpus{}
-	a.C.Filename = HomePath + "/.hast_data"
-	a.C.Docs = make(map[string]*Doc)
-
+	a.C = NewCorpus(HomePath + "/.hast_data")
 	a.S = NewSlide()
 	a.E = NewEditor()
+	a.E.SetValue(a.C.CurrentDoc.Content)
+
+	js.Global.Set("App", a)
 	a.startSyncEditorToSlides()
-	a.startAutoSaving()
+}
+
+// NewPage creates a new page
+func (a *App) NewPage() {
+	a.C.CurrentDoc = &Doc{Object: NewObject()}
+	a.E.SetValue(a.C.CurrentDoc.Content)
 }
 
 func (a *App) startSyncEditorToSlides() {
 	contentCh := a.E.GetContentCh()
-	pageNumCh := a.E.GetPageNumCh()
 	go func() {
 		for {
 			content := <-contentCh
 			a.S.SetContent(content)
 			a.S.Render()
-			a.C.UpsertDoc(
-				"uuid1",
-				"title_uuid1",
-				content,
-			)
+
+			a.C.UpsertDoc(a.C.CurrentDoc.ID, "title_uuid1", content)
 		}
 	}()
+
+	pageNumCh := a.E.GetPageNumCh()
 	go func() {
 		for {
 			a.S.GotoPage(<-pageNumCh)
-		}
-	}()
-}
-
-func (a *App) startAutoSaving() {
-	go func() {
-		for range time.Tick(3 * time.Second) {
-			a.C.Save()
 		}
 	}()
 }
