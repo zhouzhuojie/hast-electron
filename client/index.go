@@ -51,10 +51,29 @@ func NewObject() *js.Object {
 // Doc is the data storage for a single doc
 type Doc struct {
 	*js.Object
-	ID        int64  `js:"_id"`
-	Title     string `js:"title"`
-	Content   string `js:"content"`
-	UpdatedAt int64  `js:"updated_at"`
+	ID              int64  `js:"_id"`
+	Title           string `js:"title"`
+	Content         string `js:"content"`
+	UpdatedAt       int64  `js:"updated_at"`
+	HighlighCurrent bool   `js:"highlight_current"`
+}
+
+// Eq is the equal function of Docs
+func (d *Doc) Eq(that *Doc) bool {
+	return d.ID == that.ID && d.Title == that.Title && d.Content == that.Content && d.UpdatedAt == that.UpdatedAt
+}
+
+// NewDoc news a doc
+func NewDoc(id int64) *Doc {
+	doc := &Doc{Object: NewObject()}
+	doc.Content = "# Hello World!"
+	doc.UpdatedAt = time.Now().UnixNano()
+	if id == 0 {
+		doc.ID = time.Now().UnixNano()
+	} else {
+		doc.ID = id
+	}
+	return doc
 }
 
 // Corpus is the data storage for docs
@@ -71,11 +90,9 @@ func NewCorpus(filename string) *Corpus {
 			"autoload": true,
 		}),
 	}
-	ch := make(chan []*Doc)
-	c.GetAll(ch)
-	allDocs := <-ch
+	allDocs := c.GetAll()
 	if len(allDocs) == 0 {
-		c.CurrentDoc = &Doc{Object: NewObject()}
+		c.CurrentDoc = NewDoc(0)
 	} else {
 		c.CurrentDoc = allDocs[0]
 	}
@@ -88,23 +105,18 @@ func (c *Corpus) UpsertDoc(
 	title string,
 	content string,
 ) {
-	d := &Doc{Object: NewObject()}
-	if id == 0 {
-		d.ID = time.Now().UnixNano()
-	} else {
-		d.ID = id
-	}
+	d := NewDoc(id)
 	d.Title = title
 	d.Content = content
-	d.UpdatedAt = time.Now().UnixNano()
-	c.CurrentDoc = d
 
+	c.CurrentDoc = d
 	c.DB.Call("update", js.M{"_id": id}, d, js.M{"upsert": true})
 }
 
 // GetAll gets all the docs
-func (c *Corpus) GetAll(ch chan []*Doc) {
-	exec := c.DB.Call("find", js.M{}).Call("sort", js.M{"updated_at": -1})
+func (c *Corpus) GetAll() []*Doc {
+	ch := make(chan []*Doc)
+	exec := c.DB.Call("find", js.M{}).Call("sort", js.M{"_id": 1})
 	exec.Call("exec", func(err *js.Object, data *js.Object) {
 		n := data.Length()
 		docs := make([]*Doc, 0)
@@ -115,17 +127,23 @@ func (c *Corpus) GetAll(ch chan []*Doc) {
 		}
 		ch <- docs
 	})
+	return <-ch
 }
 
 // App is the app struct
 type App struct {
 	*js.Object
 
-	S *Slide
-	E *Editor
-	C *Corpus
+	S  *Slide
+	E  *Editor
+	C  *Corpus
+	VM *vue.ViewModel
 
-	FullScreenMode bool `js:"fullScreenMode"`
+	RefreshDocsFunc *js.Object
+
+	// Vue data binding
+	FullScreenMode bool   `js:"fullScreenMode"`
+	Docs           []*Doc `js:"allDocs"`
 }
 
 // ToggleFullScreenMode toggles the full screen mode
@@ -142,20 +160,47 @@ func (a *App) ToggleFullScreenMode() {
 func (a *App) Bootstrap() {
 	a.Object = NewObject()
 	a.FullScreenMode = false
-	vue.New("#app", a)
+	a.Docs = make([]*Doc, 0)
+	a.VM = vue.New("#app", a)
 
 	a.C = NewCorpus(HomePath + "/.hast_data")
 	a.S = NewSlide()
 	a.E = NewEditor()
 	a.E.SetValue(a.C.CurrentDoc.Content)
 
-	js.Global.Set("App", a)
+	// init some debounce functions
+	a.RefreshDocsFunc = Lodash.Call("throttle", func() {
+		go func() {
+			a.Docs = a.C.GetAll()
+			a.SetCurrentDoc(a.C.CurrentDoc.ID)
+		}()
+	}, 10)
+	a.RefreshDocsFunc.Invoke()
+
 	a.startSyncEditorToSlides()
+	js.Global.Set("a", a)
 }
 
-// NewPage creates a new page
-func (a *App) NewPage() {
-	a.C.CurrentDoc = &Doc{Object: NewObject()}
+// CreateDoc creates a new page
+func (a *App) CreateDoc() {
+	a.C.CurrentDoc = NewDoc(0)
+	a.E.SetValue(a.C.CurrentDoc.Content)
+}
+
+// SetCurrentDoc sets the current doc
+func (a *App) SetCurrentDoc(id int64) {
+	for _, doc := range a.Docs {
+		doc.HighlighCurrent = false
+		if doc.ID == id {
+			a.C.CurrentDoc = doc
+			a.C.CurrentDoc.HighlighCurrent = true
+		}
+	}
+}
+
+// SetCurrentDocAndReload sets the current doc
+func (a *App) SetCurrentDocAndReload(id int64) {
+	a.SetCurrentDoc(id)
 	a.E.SetValue(a.C.CurrentDoc.Content)
 }
 
@@ -166,8 +211,8 @@ func (a *App) startSyncEditorToSlides() {
 			content := <-contentCh
 			a.S.SetContent(content)
 			a.S.Render()
-
-			a.C.UpsertDoc(a.C.CurrentDoc.ID, "title_uuid1", content)
+			a.C.UpsertDoc(a.C.CurrentDoc.ID, a.S.GetTitle(), content)
+			a.RefreshDocsFunc.Invoke()
 		}
 	}()
 

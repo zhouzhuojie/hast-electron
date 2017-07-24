@@ -11,29 +11,30 @@
   <body>
     <div id="app" class="window">
       <header class="toolbar toolbar-header">
-        <h1 class="title">Header</h1>
+        <h1 class="title">Hast Electron</h1>
       </header>
       <div class="window-content">
         <div class="pane-group">
-          <div class="pane-sm sidebar">
+          <div class="pane-sm sidebar docs-menu">
             <ul class="list-group">
               <li class="list-group-header">
                 <input class="form-control" type="text" placeholder="Search for someone">
               </li>
-              <li class="list-group-item">
-                <img class="img-circle media-object pull-left" src="/assets/img/avatar.jpg" width="32" height="32">
+
+              <li class="list-group-item" v-for="doc in allDocs" v-bind:class="{active: doc.highlight_current}" @click="SetCurrentDocAndReload(doc._id)">
                 <div class="media-body">
-                  <strong>List item title</strong>
-                  <p>Lorem ipsum dolor sit amet.</p>
+                  <strong>{{ doc.title }}</strong>
                 </div>
               </li>
+
               <li class="list-group-item">
-                <img class="img-circle media-object pull-left" src="/assets/img/avatar2.png" width="32" height="32">
                 <div class="media-body">
-                  <strong>List item title</strong>
-                  <p>Lorem ipsum dolor sit amet.</p>
+                  <div class="center-text new-page-button-wrapper" @click="CreateDoc">
+                    <span class="icon icon-plus-squared"></span>
+                  </div>
                 </div>
               </li>
+
             </ul>
           </div>
           <div class="pane">
@@ -49,7 +50,7 @@
         </div>
       </div>
       <footer class="toolbar toolbar-footer">
-        <h1 class="title">Footer</h1>
+        <h1 class="title"></h1>
       </footer>
     </div>
 

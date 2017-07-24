@@ -42,6 +42,15 @@ func (s *Slide) Render() {
 	s.renderMarkdown()
 }
 
+// GetTitle gets the current Title using h1 tag
+func (s *Slide) GetTitle() string {
+	h1s := Document.Call("querySelectorAll", ".remark-slide-content h1")
+	if h1s.Length() == 0 {
+		return ""
+	}
+	return h1s.Index(0).Get("textContent").String()
+}
+
 // GotoPage sets the slide to the specific page number
 func (s *Slide) GotoPage(pageNum int) {
 	s.slideshow.Call("gotoSlide", pageNum)
