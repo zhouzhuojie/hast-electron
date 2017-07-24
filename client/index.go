@@ -41,6 +41,9 @@ var (
 
 	// NeDB is a db for doc storage
 	NeDB = js.Global.Call("require", "electron").Get("remote").Call("require", "nedb")
+
+	// Moment js
+	Moment = js.Global.Get("moment")
 )
 
 // NewObject creates a new js.Object
@@ -56,6 +59,7 @@ type Doc struct {
 	Content         string `js:"content"`
 	UpdatedAt       int64  `js:"updated_at"`
 	HighlighCurrent bool   `js:"highlight_current"`
+	TimeAgo         string `js:"time_ago"`
 }
 
 // Eq is the equal function of Docs
@@ -123,6 +127,7 @@ func (c *Corpus) GetAll() []*Doc {
 		for i := 0; i < n; i++ {
 			d := data.Index(i)
 			doc := &Doc{Object: d}
+			doc.TimeAgo = Moment.Invoke(doc.UpdatedAt / 1e6).Call("fromNow").String()
 			docs = append(docs, doc)
 		}
 		ch <- docs
@@ -174,7 +179,7 @@ func (a *App) Bootstrap() {
 			a.Docs = a.C.GetAll()
 			a.SetCurrentDoc(a.C.CurrentDoc.ID)
 		}()
-	}, 10)
+	}, 1)
 	a.RefreshDocsFunc.Invoke()
 
 	a.startSyncEditorToSlides()

@@ -24,6 +24,7 @@
               <li class="list-group-item" v-for="doc in allDocs" v-bind:class="{active: doc.highlight_current}" @click="SetCurrentDocAndReload(doc._id)">
                 <div class="media-body">
                   <strong>{{ doc.title }}</strong>
+                  <p class="small-font">Opened {{ doc.time_ago }}</p>
                 </div>
               </li>
 

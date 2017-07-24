@@ -69,8 +69,9 @@ func (s *Slide) renderMath() {
 
 func (s *Slide) renderMarkdown() {
 	option := js.M{
-		"container": s.container,
-		"source":    s.mdContent,
+		"container":      s.container,
+		"source":         s.mdContent,
+		"highlightStyle": "monokai",
 	}
 	s.slideshow = Remark.Call("create", option, s.renderMath)
 	js.Global.Set("s", s.slideshow)
