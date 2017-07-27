@@ -44,6 +44,9 @@ var (
 
 	// Moment js
 	Moment = js.Global.Get("moment")
+
+	// Elasticlunr js
+	Elasticlunr = js.Global.Get("elasticlunr")
 )
 
 // NewObject creates a new js.Object
@@ -84,6 +87,7 @@ func NewDoc(id int64) *Doc {
 type Corpus struct {
 	DB         *js.Object
 	CurrentDoc *Doc
+	Index      *js.Object
 }
 
 // NewCorpus creates a new Corpus
@@ -117,6 +121,33 @@ func (c *Corpus) UpsertDoc(
 	c.DB.Call("update", js.M{"_id": id}, d, js.M{"upsert": true})
 }
 
+// Reindex reindex all the docs
+func (c *Corpus) Reindex(docs []*Doc) {
+	c.Index = Elasticlunr.Invoke()
+	c.Index.Call("addField", "title")
+	c.Index.Call("addField", "content")
+	c.Index.Call("setRef", "id")
+	for _, doc := range docs {
+		c.Index.Call("addDoc", js.M{
+			"id":      doc.ID,
+			"title":   doc.Title,
+			"content": doc.Content,
+		})
+	}
+}
+
+// Search searches the corpus
+func (c *Corpus) Search(q string) []int64 {
+	Console.Call("log", q)
+	ids := make([]int64, 0)
+	results := c.Index.Call("search", q)
+	for i := 0; i < results.Length(); i++ {
+		ids = append(ids, results.Index(i).Get("ref").Int64())
+	}
+	Console.Call("log", ids)
+	return ids
+}
+
 // GetAll gets all the docs
 func (c *Corpus) GetAll() []*Doc {
 	ch := make(chan []*Doc)
@@ -132,7 +163,9 @@ func (c *Corpus) GetAll() []*Doc {
 		}
 		ch <- docs
 	})
-	return <-ch
+	docs := <-ch
+	c.Reindex(docs)
+	return docs
 }
 
 // App is the app struct
@@ -149,6 +182,7 @@ type App struct {
 	// Vue data binding
 	FullScreenMode bool   `js:"fullScreenMode"`
 	Docs           []*Doc `js:"allDocs"`
+	SearchStr      string `js:"searchStr"`
 }
 
 // ToggleFullScreenMode toggles the full screen mode
@@ -166,6 +200,7 @@ func (a *App) Bootstrap() {
 	a.Object = NewObject()
 	a.FullScreenMode = false
 	a.Docs = make([]*Doc, 0)
+	a.SearchStr = ""
 	a.VM = vue.New("#app", a)
 
 	a.C = NewCorpus(HomePath + "/.hast_data")
@@ -183,7 +218,6 @@ func (a *App) Bootstrap() {
 	a.RefreshDocsFunc.Invoke()
 
 	a.startSyncEditorToSlides()
-	js.Global.Set("a", a)
 }
 
 // CreateDoc creates a new page
@@ -207,6 +241,28 @@ func (a *App) SetCurrentDoc(id int64) {
 func (a *App) SetCurrentDocAndReload(id int64) {
 	a.SetCurrentDoc(id)
 	a.E.SetValue(a.C.CurrentDoc.Content)
+}
+
+// FilterSearchResult filters the docs based on query
+func (a *App) FilterSearchResult() {
+	go func() {
+		query := a.SearchStr
+		a.Docs = a.C.GetAll()
+		if len(query) <= 1 {
+			return
+		}
+		ids := a.C.Search(query)
+		docs := make([]*Doc, len(ids))
+		for i, id := range ids {
+			for _, doc := range a.Docs {
+				if doc.ID == id {
+					docs[i] = doc
+				}
+			}
+		}
+		Console.Call("log", docs)
+		a.Docs = docs
+	}()
 }
 
 func (a *App) startSyncEditorToSlides() {

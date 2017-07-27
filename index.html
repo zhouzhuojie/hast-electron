@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/photon/0.1.2-alpha/css/photon.min.css">
     <link rel="stylesheet" href="./client/styles.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.8/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/elasticlunr/0.9.6/elasticlunr.min.js"></script>
   </head>
   <body>
     <div id="app" class="window">
@@ -18,7 +19,7 @@
           <div class="pane-sm sidebar docs-menu">
             <ul class="list-group">
               <li class="list-group-header">
-                <input class="form-control" type="text" placeholder="Search for someone">
+                <input class="form-control" type="text" placeholder="Search for someone" v-model="searchStr" v-on:keyup="FilterSearchResult">
               </li>
 
               <li class="list-group-item" v-for="doc in allDocs" v-bind:class="{active: doc.highlight_current}" @click="SetCurrentDocAndReload(doc._id)">
