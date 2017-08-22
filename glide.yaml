@@ -1,8 +1,0 @@
-package: github.com/zhouzhuojie/hast-electron
-import:
-- package: github.com/gopherjs/gopherjs
-  subpackages:
-  - js
-- package: github.com/oskca/gopherjs-electron
-- package: github.com/oskca/gopherjs-nodejs
-- package: github.com/oskca/gopherjs-vue
