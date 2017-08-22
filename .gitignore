@@ -1,6 +1,3 @@
 node_modules
-main.js
-main.js.map
-client/index.js
-client/index.js.map
-client/styles.css
+vendor
+dist/hast-*

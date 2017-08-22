@@ -1,7 +1,19 @@
 {
-  "name":"hast-electron",
-  "main":"main.js",
+  "name": "hast-electron",
+  "description": "Quick markdown presentation",
+  "productName": "hast",
+  "license": "MIT",
+  "author": "Zhuojie Zhou",
+  "main": "main.js",
+  "version": "0.1.0",
+  "repository": "https://github.com/zhouzhuojie/hast-electron",
   "scripts": {
+    "pack:osx": "electron-packager . $npm_package_productName --out=dist --platform=darwin --arch=x64 --icon=dist/icons/icon.icns --prune --overwrite",
+    "pack:win32": "electron-packager . $npm_package_productName --out=dist --platform=win32 --arch=ia32 --icon=dist/icons/icon.ico --prune --overwrite",
+    "pack:win64": "electron-packager . $npm_package_productName --out=dist --platform=win32 --arch=x64 --icon=dist/icons/icon.ico --prune --overwrite",
+    "pack:linux32": "electron-packager . $npm_package_productName --out=dist --platform=linux --arch=ia32 --icon=dist/icons/icon.png --prune --overwrite",
+    "pack:linux64": "electron-packager . $npm_package_productName --out=dist --platform=linux --arch=x64 --icon=dist/icons/icon.png --prune --overwrite",
+    "dist": "npm run pack:osx && npm run pack:win32 && npm run pack:win64 && npm run pack:linux32 && npm run pack:linux64",
     "start": "electron .",
     "debug": "electron --inspect=5858 .",
     "clean": "rm -rf ./main.js* && rm -rf ./client/index.js* && rm -rf $GOPATH/pkg/*_js*",
@@ -12,6 +24,8 @@
   },
   "devDependencies": {
     "electron": "~1.6.2",
+    "electron-builder": "~19.24.2",
+    "electron-packager": "^8.7.2",
     "less": "~2.7.2"
   }
 }

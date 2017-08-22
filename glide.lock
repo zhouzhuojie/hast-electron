@@ -1,0 +1,23 @@
+hash: 0d2971bcaf3f7bd26bbd79c787c5304764c5c5385197a693a85713ac486af932
+updated: 2017-08-21T19:43:18.080009701-07:00
+imports:
+- name: github.com/gopherjs/gopherjs
+  version: 2b1d432c8a82c9bff0b0baffaeb3ec6e92974112
+  subpackages:
+  - js
+- name: github.com/oskca/gopherjs-dom
+  version: 32ec7beb35cf955fdc223ba03621f12e490edc7d
+- name: github.com/oskca/gopherjs-electron
+  version: 699f2aae91c3a66ddfab0471b9caa05ee8358962
+- name: github.com/oskca/gopherjs-json
+  version: fa80e2036d4607f8e17dc282b2da430890efc116
+- name: github.com/oskca/gopherjs-nodejs
+  version: 372f1f6e2a19f36fa833bf559fcedc1f12ad32bb
+  subpackages:
+  - events
+- name: github.com/oskca/gopherjs-vue
+  version: ab40c9e57345d35375c820c8e885d28ed70f165e
+  subpackages:
+  - jscode/debug
+  - jscode/minified
+testImports: []

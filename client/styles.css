@@ -1,0 +1,40 @@
+#h-slides-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+.pane.full-screen-mode {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 98;
+}
+#h-editor-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+#full-screen-btn-wrapper {
+  position: absolute;
+  bottom: 2em;
+  right: 2em;
+  z-index: 99;
+}
+#full-screen-btn-wrapper .icon {
+  font-size: 2em;
+}
+.center-text {
+  text-align: center;
+}
+.new-page-button-wrapper {
+  font-size: 2em;
+}
+.docs-menu {
+  overflow-y: scroll;
+}
